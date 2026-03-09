@@ -1,7 +1,0 @@
-# patches and related files
-*.orig
-*.patch
-*.rej
-
-# checksums file as used by $ScriptInstallUpdate
-checksums.json
