@@ -1,7 +1,6 @@
 # Makefile
 
 BUILD_DIR       = $(shell pwd)
-
 BIN_DIR         = bin
 commitinfo.sh   := $(wildcard bin/commitinfo.sh)
 
@@ -41,83 +40,39 @@ COMM_INFO       := $(shell echo -e "Autocommit in repo: $(COMM_REPO), generated 
 
 export BUILD_DIR BIN_DIR HTML_DIR DATE DTSTAMP VERSION COMMIT_ID COMM_TAG COMM_HASH COMM_INFO
 
-.ONESHELL:
-SHELL := /bin/bash
-.DEFAULT_GOAL := run
+.PHONY: all checksums commit check-uncommitted commitinfo clean
 
-export BUILD_DIR BIN_DIR HTML_DIR DATE DTSTAMP VERSION COMMIT_ID COMM_TAG COMM_HASH COMM_INFO
-
-include $(BUILD_DIR)/.config/config.mk
-
-.PHONY: run check notify test
-
-run: check
-	@echo "[run] start main flow"
-    # ...
-	@echo "[run] done"
-
-check:
-	@bash bin/check_repo.sh
-
-notify:
-	@bash bin/notify_telegram.sh "manual notify from make"
-
-test:
-	@bash -n bin/check_repo.sh
-	@bash -n bin/notify_telegram.sh
-	@echo "syntax ok"
-
-
-.DEFAULT_GOAL := all
-.PHONY: all checksums git-check commitinfo clean
-
-define run-git =
-    git $@
-endef
-
-all: checksums git-check commitinfo
+all: checksums commit commitinfo
 
 checksums: checksums.json
 
 checksums.json: bin/checksums.sh $(ALL_RSC)
 	bin/checksums.sh > html/tmp/$@
 
-gitcheck: $(BUILD_DIR)
-	cd $ && 
-	@if git diff --quiet && git diff --cached --quiet && [ -z "$$(git ls-files --others --exclude-standard)" ]; then \
-		echo "The first checks have been passed, the repo seems to be clean... But... Still, let's check a little more!"; \
-	    git add . && ; \ 
-		if [[ -n git status --porcelain ]]; then \
-			echo "Uncommitted changes detected! Commit it..."; \
-#			git commit -m "$(COMM_INFO)"; \
-#			git push; \
-    	    exit 1; \
-		else \
-			echo "repo clean"; \
-		fi \
-	else \
-		@echo "Warning: Uncommitted changes detected! Go to autocommit steps..."; \
-#		git branch -v; \
-#		git commit -am "$(COMM_INFO)"; \
-#		git push; \
-	fi
+commit: check-uncommitted
+		@echo >$ ; \
+		@echo $@ ; \
+		@echo "Warning: Uncommitted changes detected! Go to autocommit steps..." \
+		exit 1;
 
+#git-fig:
+#		git branch -v
+#		git commit -am "$(COMM_INFO)"
+#		git push
 
 #@if [ -n "$$(git diff --quiet)" ] && [ -n "$$(git diff --cached --quiet)" ] && [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
 #[ -n "$$(git status --porcelain)" ]
 
 check-uncommitted: 
 		@if [ -n "$$(git diff --quiet)" ] && [ -n "$$(git diff --cached --quiet)" ] && [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
-			echo "Warning: Uncommitted changes detected! Go to autocommit steps..."; \
-		else \
+				exit 0;
+			else \
 	    	echo "The first checks have been passed, the repo seems to be clean... But... Still, let's check a little more!"; \
 	   		if git status --porcelain; then \
-				echo "Repository is clean (no uncommitted or untracked changes). Exit 0."; \
-				exit 0; \
+				echo "Repository is clean (no uncommitted or untracked changes). Exit 0." && @echo 0 >$@; \
 			else \
-				echo "Error! Git status is not porcelain! Check it mannualy. Exit 1."; \
-				exit 1; \
-			fi \
+				echo "Error! Git status is not porcelain! Check it mannualy. Exit 1." && @echo 1 >$@; \
+			fi
 		fi
 
 

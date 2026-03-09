@@ -1,5 +1,4 @@
 .vscode
-.config
 # folder for mikro_bak user only
 Mikrotiks
 **/oxidized
@@ -12,7 +11,6 @@ Mikrotiks
 **/.local
 **/.ssh
 **/.vscode
-**/backup
 # patches and related files
 *.orig
 *.patch
