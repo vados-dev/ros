@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export BUILD_DIR="/var/www/ros.vados.ru"
+export BUILD_DIR="/var/www/WORKDIR"
 set -e
 ##export BUILD_DIR
 #make checksums 2>/dev/null

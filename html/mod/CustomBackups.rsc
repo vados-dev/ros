@@ -1,6 +1,6 @@
-#!rsc by Vados
+#
 # RouterOS function-collection
-# CustomBackups Functions 
+# CustomBackups Functions
 
 :global DoLocalBackup;
 

@@ -1,9 +1,13 @@
 #!rsc by Vados
-# RouterOS function-collection
-# DateTime Functions 
+# RouterOS script: mod/AM-DateTime
+# Script comment: DateTime format functions
+#
+#
+# requires RouterOS, version=7.21
+# requires device-mode, fetch, scheduler
 
 :global CurrentDateTime;
-:global FullDateTimeStamp;
+:global DateTimeStamp;
 :global MiniDateTimeStamp;
 
 :set CurrentDateTime do={
@@ -16,7 +20,9 @@
        } else={:set currDate $rawDate}
 :return ($currDate . " " . $currTime);
 }
-:set FullDateTimeStamp do={
+
+:set DateTimeStamp do={
+    :local getFmt [:tostr $1]
     /system clock
     :local vdate [get date]
     :local vtime [get time]
@@ -69,9 +75,13 @@
     :local s    [:tonum $ss]
     :local Z    "$gmtSg$gmtHr:$gmtMn"
     :local Unix (((((($totd * 24) + $H) * 60) + $m) * 60) + $s - $vgmt)
-#    :return "$yyyy-$MM-$dd\54$HH:$mm:$ss$Z $Www (YD: $YD) (MD: $MD) (WD: $WD) $Leap $Unix"
-    :return "$yyyy$MM$dd$HH$mm$ss"
+    :if ($getFmt = "Min") do={
+        :return "$yyyy$MM$dd$HH$mm$ss";
+    } else={
+        :return "$yyyy$MM$dd$HH$mm$ss";
+    }
 }
+
 :set MiniDateTimeStamp do={
     /system clock
     :local vdate [get date]

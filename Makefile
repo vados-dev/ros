@@ -37,34 +37,63 @@ export BUILD_DIR REPO_DIR ALL_RSC GLOB_RSC
 
 .DEFAULT_GOAL := run
 
-.PHONY: run check notify test
-#checksums $(commitinfo.sh)
+.PHONY: run check commit notify checksums $(commitinfo.sh) test
 
-run: check
-#	@echo "[run] start main flow"
-	@echo "[run] done"
+run:
+	@$(MAKE) check; rc=$$?; \
+	if [ $$rc -eq 0 ]; then \
+		echo "✅ [run] check $$rc, go to commitinfo.sh..."; \
+		$(MAKE) $(commitinfo.sh); ci=$$?; \
+		if [ $$ci -eq 0 ]; then \
+			echo "✅ [run] commitinfo.sh exit $$ci. Go to checksums.sh..."; \
+			$(MAKE) checksums; cs=$$?; \
+			if [ $$cs -eq 0 ]; then \
+				echo "✅ [run] checksums.sh exit $$cs. Do git add commit and push..."; \
+				$(MAKE) commit; cm=$$?; \
+				if [ $$cm -eq 0 ]; then \
+					echo "✅ [run] commit exit $$cm. Exit Ok."; \
+				else \
+					$(MAKE) notify MSG="❌ [run] commit exit $$cm. Check it!"; \
+				fi \
+			else \
+				$(MAKE) notify MSG="❌ [run] checksums.sh exit $$cs, check it!"; \
+			fi \
+		else \
+			$(MAKE) notify MSG="❌ [run] commitinfo.sh exit $$ci, check it!"; \
+		fi \
+	else \
+		echo "🧹 [run] check exit $$rc, repo is clean exit Ok."; \
+	fi
+	@echo "OK [run] done"
 
 check:
 	@bash bin/check_repo.sh
 
+commit:
+	cd $(BUILD_DIR)
+	git add .
+	git commit -m '$(COMM_INFO)'
+	git push
+
 notify:
-	@bash bin/notify_telegram.sh "manual notify from make"
+	@bash bin/notify_telegram.sh "$(MSG)"
 
 checksums: checksums.json
 
 checksums.json: bin/checksums.sh $(ALL_RSC)
-		bin/checksums.sh > html/tmp/checksums.json
+	bin/checksums.sh > html/tmp/$@
 
 $(commitinfo.sh): $(GLOB_RSC)
-		$(commitinfo.sh) $< > $<~
-		mv $<~ $<
+	$(commitinfo.sh) $< > $<~
+	mv $<~ $<
 
 test:
 	@bash -n bin/check_repo.sh
 	@bash -n bin/notify_telegram.sh
 	@bash -n bin/checksums.sh
 	@bash -n bin/commitinfo.sh
-	@echo "syntax ok"
+	@echo "🧪 [test] syntax ok"
 
 #clean:
+#		echo "🧹"
 #		git checkout HEAD -- .

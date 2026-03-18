@@ -1,19 +1,7 @@
-.bak
-.vscode
-# folder for mikro_bak user only
-Mikrotiks
-**/oxidized
-**/upload
-**/test
-**/.bak
-**/.cache
-**/.docker
-**/.gnupg
-**/.local
-**/.ssh
-**/.vscode
-**/backup
-**/Precedent-Config.rsc
+#.bak
+.vscode/
+# 
+Mikrotiks/
 # backup and temporary files
 *~
 # patches and related files
